@@ -3,6 +3,7 @@ package edu.jhu.ugrad.sseo6;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 import java.util.Scanner;
@@ -31,6 +32,7 @@ public class SQLManager {
 	
 	private boolean checkConnection() throws SQLException, IOException {
 		String hostname = "";
+		String username = "";
 		String port = "";
 		String password = "";
 		String database = "";
@@ -44,6 +46,7 @@ public class SQLManager {
 				xmlReader.next();
 				if(xmlReader.isStartElement() && xmlReader.getLocalName().equals(DBServerMain.infoElement)){
 					hostname = xmlReader.getAttributeValue(null, "hostname");
+					username = xmlReader.getAttributeValue(null, "username");
 					password = xmlReader.getAttributeValue(null, "password");
 					port = xmlReader.getAttributeValue(null, "port");
 					database = xmlReader.getAttributeValue(null, "database");
@@ -59,16 +62,21 @@ public class SQLManager {
 			return false;
 		}
 
-		if(hostname.equals(DBServerMain.defaultHostname) || password.equals(DBServerMain.defaultPassword)
-				|| port.equals(DBServerMain.defaultPort) || database.equals(DBServerMain.defaultDatabase)){
-			System.out.println("ERROR: Default hostname, port, password, and/or database detected in DBSettings.xml!");
+		if(password.equals(DBServerMain.defaultPassword) || database.equals(DBServerMain.defaultDatabase)
+				|| username.equals(DBServerMain.defaultUsername)){
+			System.out.println("ERROR: Default username, password, and/or database detected in DBSettings.xml!");
 			return false;
 		}
-		/*
+		
 		Connection con = null;
-		Properties connectionProps = new Properties();
-		*/
-		return true;
+		Properties cProps = new Properties();
+		cProps.put("user", username);
+		cProps.put("password", password);
+		con = DriverManager.getConnection("jdbc:mysql://" + hostname + ":" + port + "/" + database,cProps);
+		if(con.isValid(5))
+			return true;
+
+		return false;
 	}
 	
 	public void updateDB(){

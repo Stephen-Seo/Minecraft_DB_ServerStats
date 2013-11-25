@@ -28,9 +28,10 @@ public class DBServerMain {
 	protected static final String rootElement = "Settings";
 	protected static final String infoElement = "DBInfo";
 	
-	protected static final String defaultHostname = "(the hostname)";
+	protected static final String defaultHostname = "127.0.0.1";
+	protected static final String defaultUsername = "(the username)";
 	protected static final String defaultPassword = "(the password)";
-	protected static final String defaultPort = "(the port)";
+	protected static final String defaultPort = "3306";
 	protected static final String defaultDatabase = "(the database)";
 	
 	@EventHandler
@@ -70,6 +71,7 @@ public class DBServerMain {
 			xmlWriter.writeStartElement(rootElement);
 			xmlWriter.writeStartElement(infoElement);
 			xmlWriter.writeAttribute("hostname", defaultHostname);
+			xmlWriter.writeAttribute("username", defaultUsername);
 			xmlWriter.writeAttribute("password", defaultPassword);
 			xmlWriter.writeAttribute("port", defaultPort);
 			xmlWriter.writeAttribute("database", defaultDatabase);
