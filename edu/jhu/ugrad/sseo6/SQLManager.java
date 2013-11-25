@@ -15,27 +15,33 @@ import javax.xml.stream.XMLStreamReader;
 
 public class SQLManager {
 	private boolean dbExists;
-	
+
+	private String hostname = "";
+	private String username = "";
+	private String port = "";
+	private String password = "";
+	private String database = "";
+
 	public void initialize(){
 		try {
-			dbExists = checkConnection();
+			dbExists = initializeCheck();
 		} catch (SQLException e) {
 			dbExists = false;
 			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
 			e.printStackTrace();
+			return;
 		} catch (IOException e) {
 			dbExists = false;
 			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
 			e.printStackTrace();
+			return;
 		}
+		
+		if(!dbExists)
+			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
 	}
 	
-	private boolean checkConnection() throws SQLException, IOException {
-		String hostname = "";
-		String username = "";
-		String port = "";
-		String password = "";
-		String database = "";
+	private boolean initializeCheck() throws SQLException, IOException {
 		
 		FileInputStream fis = null;
 		fis = new FileInputStream(DBServerMain.xml);
@@ -65,18 +71,34 @@ public class SQLManager {
 		if(password.equals(DBServerMain.defaultPassword) || database.equals(DBServerMain.defaultDatabase)
 				|| username.equals(DBServerMain.defaultUsername)){
 			System.out.println("ERROR: Default username, password, and/or database detected in DBSettings.xml!");
+			System.out.println("  Please change the settings in the DBSettings.xml file.");
 			return false;
 		}
 		
+		Connection con = getConnection();
+		
+		boolean connected = false;
+		if(con != null && con.isValid(10))
+		{
+			connected = true;
+			DBServerMain.instance().dataManager.initialize(con);
+		}
+
+		return connected;
+	}
+	
+	public Connection getConnection(){
 		Connection con = null;
 		Properties cProps = new Properties();
 		cProps.put("user", username);
 		cProps.put("password", password);
-		con = DriverManager.getConnection("jdbc:mysql://" + hostname + ":" + port + "/" + database,cProps);
-		if(con.isValid(5))
-			return true;
-
-		return false;
+		try {
+			con = DriverManager.getConnection("jdbc:mysql://" + hostname + ":" + port + "/" + database,cProps);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return con;
 	}
 	
 	public void updateDB(){

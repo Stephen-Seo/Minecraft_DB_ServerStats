@@ -10,17 +10,27 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import net.minecraftforge.common.MinecraftForge;
+
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
+import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkMod;
+import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 @NetworkMod(clientSideRequired=false, serverSideRequired=true, channels = {})
 
 @Mod(modid="mod_sseo6_DBServerStats", name="DB Server Stats", version="0.0.1")
 public class DBServerMain {
-	private SQLManager manager = new SQLManager();
+	
+	@Instance("mod_sseo6_DBServerStats")
+	private static DBServerMain INSTANCE = new DBServerMain();
+	
+	protected DataManager dataManager = new DataManager();
+	protected SQLManager sqlManager = new SQLManager();
 	
 	protected static final String modDir = "./DBServerStats";
 	protected static final String xml = modDir + "/DBSettings.xml";
@@ -33,6 +43,10 @@ public class DBServerMain {
 	protected static final String defaultPassword = "(the password)";
 	protected static final String defaultPort = "3306";
 	protected static final String defaultDatabase = "(the database)";
+	
+	public static DBServerMain instance(){
+		return INSTANCE;
+	}
 	
 	@EventHandler
 	public void initialize(FMLInitializationEvent event){
@@ -53,12 +67,15 @@ public class DBServerMain {
 		if(createSettings)
 			createDBSettings();
 		
-		manager.initialize();
+		sqlManager.initialize();
+		
+		MinecraftForge.EVENT_BUS.register(dataManager);
+		GameRegistry.registerPlayerTracker(new DBPlayerTracker());
 	}
 	
 	@EventHandler
 	public void shutdown(FMLServerStoppingEvent event){
-		manager.updateDB();
+		sqlManager.updateDB();
 	}
 	
 	private void createDBSettings(){
