@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Properties;
-import java.util.Scanner;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -80,6 +80,7 @@ public class SQLManager {
 		if(con != null && con.isValid(10))
 		{
 			DBServerMain.instance().dataManager.initialize(con);
+			con.close();
 			return true;
 		}
 
@@ -100,8 +101,39 @@ public class SQLManager {
 		return con;
 	}
 	
-	public void updateDB(){
-		if(!dbExists)
-			return;
+	public void updateQuery(String query){
+		new Thread(new SQLCallUpdate(query)).run();
+	}
+
+	public class SQLCallUpdate implements Runnable {
+		private Statement statement = null;
+		private String query;
+
+		public SQLCallUpdate(String query) {
+			this.query = query;
+		}
+		
+		@Override
+		public void run() {
+			Connection con = DBServerMain.instance().sqlManager.getConnection();
+			try {
+				statement = con.createStatement();
+				statement.executeUpdate(query);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (NullPointerException e) {
+				e.printStackTrace();
+			}
+			
+			if(statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {}
+			
+			if(con != null)
+				try {
+					con.close();
+				} catch (SQLException e) {}
+		}
 	}
 }

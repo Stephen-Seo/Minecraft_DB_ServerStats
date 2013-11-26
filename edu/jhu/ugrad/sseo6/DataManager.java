@@ -27,6 +27,13 @@ public class DataManager {
 			while(result.next()){
 				
 			}
+			try {
+				result.close();
+			} catch(SQLException e) {}
+			try {
+				statement.close();
+			} catch(SQLException e) {}
+			
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return false;
@@ -52,4 +59,9 @@ public class DataManager {
 	public void playerDeathEvent(LivingDeathEvent event){
 		
 	}
+	
+	public void serverShuttingDown(){
+		
+	}
+	
 }

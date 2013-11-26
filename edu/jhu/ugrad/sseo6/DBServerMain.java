@@ -3,7 +3,6 @@ package edu.jhu.ugrad.sseo6;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLOutputFactory;
@@ -11,14 +10,12 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import net.minecraftforge.common.MinecraftForge;
-
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkMod;
-import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 
 @NetworkMod(clientSideRequired=false, serverSideRequired=true, channels = {})
@@ -75,7 +72,7 @@ public class DBServerMain {
 	
 	@EventHandler
 	public void shutdown(FMLServerStoppingEvent event){
-		sqlManager.updateDB();
+		dataManager.serverShuttingDown();
 	}
 	
 	private void createDBSettings(){
