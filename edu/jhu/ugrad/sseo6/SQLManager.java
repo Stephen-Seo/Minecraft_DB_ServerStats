@@ -7,6 +7,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import javax.xml.stream.FactoryConfigurationError;
@@ -115,7 +117,7 @@ public class SQLManager {
 		Statement statement = null;
 		Connection con = null;
 		if(connection == null)
-			con = DBServerMain.instance().sqlManager.getConnection();
+			con = getConnection();
 		else
 		{
 			preserveConnection = true;
@@ -155,7 +157,7 @@ public class SQLManager {
 		ResultSet results = null;
 		Connection con = null;
 		if(connection == null)
-			con = DBServerMain.instance().sqlManager.getConnection();
+			con = getConnection();
 		else
 		{
 			preserveConnection = true;
@@ -183,6 +185,102 @@ public class SQLManager {
 			} catch (SQLException e) {}
 		
 		return result;
+	}
+	
+	/**
+	 * Returns a collection of results as the first column from the query.
+	 * If a connection is provided (is not null), then that connection is used
+	 * and will be preserved.
+	 * @param query The SQL Query that is executed.
+	 * @param connection The provided connection, null if not provided.
+	 * @return A Collection of Strings that is the result in rows form.
+	 */
+	public Collection<String> standardQueryColumn(String query, Connection connection) {
+		boolean preserveConnection = false;
+		Statement statement = null;
+		ResultSet results = null;
+		Connection con = null;
+		if(connection == null)
+			con = getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		Collection<String> resultCol = new LinkedList<String>();
+
+		try {
+			statement = con.createStatement();
+			results = statement.executeQuery(query);
+			while(results.next())
+			{
+				resultCol.add(results.getString(1));
+			}
+		} catch (SQLException e) {}
+
+		if(results != null)
+			try {
+				results.close();
+			} catch (SQLException e) {}
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
+		
+		return resultCol;
+	}
+	
+	/**
+	 * Returns a collection of results as the first row from the query.
+	 * If a connection is provided (is not null), then that connection is used
+	 * and will be preserved.
+	 * @param query The SQL Query that is executed.
+	 * @param connection The provided connection, null if not provided.
+	 * @param rowSize The size of the row resulting from the query.
+	 * @return A Collection of Strings that is the result in rows form.
+	 */
+	public Collection<String> standardQueryRow(String query, Connection connection, int rowSize) {
+		boolean preserveConnection = false;
+		Statement statement = null;
+		ResultSet results = null;
+		Connection con = null;
+		if(connection == null)
+			con = getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		Collection<String> resultCol = new LinkedList<String>();
+
+		try {
+			statement = con.createStatement();
+			results = statement.executeQuery(query);
+			results.next();
+			int i = 0;
+			while(i < rowSize) {
+				resultCol.add(results.getString(++i));
+			}
+		} catch (SQLException e) {}
+
+		if(results != null)
+			try {
+				results.close();
+			} catch (SQLException e) {}
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
+		
+		return resultCol;
 	}
 /*
 	public class SQLCallUpdate implements Runnable {
