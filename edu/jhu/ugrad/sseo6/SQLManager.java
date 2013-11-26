@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
@@ -101,10 +102,88 @@ public class SQLManager {
 		return con;
 	}
 	
-	public void updateQuery(String query){
-		new Thread(new SQLCallUpdate(query)).run();
+	/**
+	 * Updates the SQL Database with the query that is an
+	 * insert/update/delete.
+	 * If a connection is provided (is not null), then that connection
+	 * will be used and will be preserved.
+	 * @param query The SQL query that is executed.
+	 * @param connection The provided connection, null if not provided.
+	 */
+	public void updateQuery(String query, Connection connection){
+		boolean preserveConnection = false;
+		Statement statement = null;
+		Connection con = null;
+		if(connection == null)
+			con = DBServerMain.instance().sqlManager.getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		try {
+			statement = con.createStatement();
+			statement.executeUpdate(query);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+		
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
 	}
-
+	
+	/**
+	 * Returns the result of the first row in the first column of the query.
+	 * If a connection is provided (is not null), then that connection is used
+	 * and will be preserved.
+	 * @param query The SQL query that is executed.
+	 * @param connection The provided connection, null if not provided.
+	 * @return A String containing the result.
+	 */
+	public String standardQuery(String query, Connection connection){
+		boolean preserveConnection = false;
+		Statement statement = null;
+		ResultSet results = null;
+		Connection con = null;
+		if(connection == null)
+			con = DBServerMain.instance().sqlManager.getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		String result = null;
+		try {
+			statement = con.createStatement();
+			results = statement.executeQuery(query);
+			results.next();
+			result = results.getString(1);
+			if(results != null)
+				try {
+					results.close();
+				} catch (SQLException e) {}
+			if(statement != null)
+				try {
+					statement.close();
+				} catch (SQLException e) {}
+			if(!preserveConnection && con != null)
+				try {
+					con.close();
+				} catch (SQLException e) {}
+		} catch (SQLException e) {}
+		
+		return result;
+	}
+/*
 	public class SQLCallUpdate implements Runnable {
 		private Statement statement = null;
 		private String query;
@@ -135,5 +214,5 @@ public class SQLManager {
 					con.close();
 				} catch (SQLException e) {}
 		}
-	}
+	}*/
 }
