@@ -30,18 +30,18 @@ public class SQLManager {
 			dbExists = initializeCheck();
 		} catch (SQLException e) {
 			dbExists = false;
-			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
+			System.out.println("ERROR: DBServer_Stats failed to connect to the database!");
 			e.printStackTrace();
 			return;
 		} catch (IOException e) {
 			dbExists = false;
-			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
+			System.out.println("ERROR: DBServer_Stats failed to connect to the database!");
 			e.printStackTrace();
 			return;
 		}
 		
 		if(!dbExists)
-			System.out.println("WARNING: DBServer_Stats failed to connect to the database!");
+			System.out.println("ERROR: DBServer_Stats failed to connect to the database!");
 	}
 	
 	private boolean initializeCheck() throws SQLException, IOException {
@@ -113,6 +113,12 @@ public class SQLManager {
 	 * @param connection The provided connection, null if not provided.
 	 */
 	public void updateQuery(String query, Connection connection){
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return;
+		}
+		
 		boolean preserveConnection = false;
 		Statement statement = null;
 		Connection con = null;
@@ -152,6 +158,12 @@ public class SQLManager {
 	 * @return A String containing the result.
 	 */
 	public String standardQuery(String query, Connection connection){
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return null;
+		}
+		
 		boolean preserveConnection = false;
 		Statement statement = null;
 		ResultSet results = null;
@@ -196,6 +208,12 @@ public class SQLManager {
 	 * @return A Collection of Strings that is the result in rows form.
 	 */
 	public Collection<String> standardQueryColumn(String query, Connection connection) {
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return null;
+		}
+		
 		boolean preserveConnection = false;
 		Statement statement = null;
 		ResultSet results = null;
@@ -244,6 +262,12 @@ public class SQLManager {
 	 * @return A Collection of Strings that is the result in rows form.
 	 */
 	public Collection<String> standardQueryRow(String query, Connection connection, int rowSize) {
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return null;
+		}
+		
 		boolean preserveConnection = false;
 		Statement statement = null;
 		ResultSet results = null;

@@ -22,7 +22,7 @@ public class DataManager {
 		ResultSet result;
 		try {
 			statement = con.createStatement();
-			result = statement.executeQuery("SELECT * FROM Player");
+			result = statement.executeQuery("SELECT Username FROM Player");
 			
 			while(result.next()){
 				
