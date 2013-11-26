@@ -36,11 +36,11 @@ public class DataManager {
 		return true;
 	}
 	
-	public void playerLoggedIn(EntityPlayer username){
+	public void playerLoggedIn(EntityPlayer player){
 		
 	}
 	
-	public void playerLoggedOut(EntityPlayer username){
+	public void playerLoggedOut(EntityPlayer player){
 		
 	}
 

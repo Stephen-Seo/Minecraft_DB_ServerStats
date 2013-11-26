@@ -77,14 +77,13 @@ public class SQLManager {
 		
 		Connection con = getConnection();
 		
-		boolean connected = false;
 		if(con != null && con.isValid(10))
 		{
-			connected = true;
 			DBServerMain.instance().dataManager.initialize(con);
+			return true;
 		}
 
-		return connected;
+		return false;
 	}
 	
 	public Connection getConnection(){
