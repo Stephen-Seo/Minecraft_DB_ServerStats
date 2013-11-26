@@ -167,19 +167,20 @@ public class SQLManager {
 			results = statement.executeQuery(query);
 			results.next();
 			result = results.getString(1);
-			if(results != null)
-				try {
-					results.close();
-				} catch (SQLException e) {}
-			if(statement != null)
-				try {
-					statement.close();
-				} catch (SQLException e) {}
-			if(!preserveConnection && con != null)
-				try {
-					con.close();
-				} catch (SQLException e) {}
 		} catch (SQLException e) {}
+
+		if(results != null)
+			try {
+				results.close();
+			} catch (SQLException e) {}
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
 		
 		return result;
 	}
