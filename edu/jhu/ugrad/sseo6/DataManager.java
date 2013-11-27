@@ -76,8 +76,26 @@ public class DataManager {
 	}
 	
 	public void playerLoggedOut(EntityPlayer player){
-		//player.experienceLevel
-		//player.getScore()
+		int expLevel = player.experienceLevel;
+		int score = player.getScore();
+		Pair<Integer, Long> prev = timeAtLogin.remove(player.username);
+		
+		Connection con = DBServerMain.instance().sqlManager.getConnection();
+		
+		DBServerMain.instance().sqlManager.updateQuery(
+				"UPDATE Player SET Exp_Level = " + expLevel +
+				", Score = " + score + " WHERE Player = " + player.username, con);
+		
+		int timeSpent = (int)((Calendar.getInstance().getTimeInMillis() - prev.b) / 1000);
+		timeSpent += Integer.parseInt(DBServerMain.instance().sqlManager.standardQuery(
+				"SELECT Time FROM Time_Spent WHERE Player = " + player.username, con));
+		DBServerMain.instance().sqlManager.updateQuery(
+				"UPDATE Time_Spent SET Time = " + timeSpent +
+				" WHERE Player = " + player.username + " AND Dimension_ID = " + player.dimension, con);
+		
+		try {
+			con.close();
+		} catch (SQLException e) {}
 	}
 
 	public void playerChangedDimension(EntityPlayer player) {
@@ -89,7 +107,8 @@ public class DataManager {
 		timeSpent += Integer.parseInt(DBServerMain.instance().sqlManager.standardQuery(
 				"SELECT Time FROM Time_Spent WHERE Player = " + player.username, con));
 		DBServerMain.instance().sqlManager.updateQuery(
-				"UPDATE Time_Spent SET Time=" + timeSpent + " WHERE Player = " + player.username, con);
+				"UPDATE Time_Spent SET Time = " + timeSpent +
+				" WHERE Player = " + player.username + " AND Dimension_ID = " + player.dimension, con);
 		} catch (NullPointerException e) {
 			e.printStackTrace();
 			System.out.println("  Was the database incorrectly initialized?");
