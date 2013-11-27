@@ -28,6 +28,7 @@ public class DBServerMain {
 	
 	protected DataManager dataManager = new DataManager();
 	protected SQLManager sqlManager = new SQLManager();
+	private DBPlayerTracker playerTracker = new DBPlayerTracker();
 	
 	protected static final String modDir = "./DBServerStats";
 	protected static final String xml = modDir + "/DBSettings.xml";
@@ -67,7 +68,8 @@ public class DBServerMain {
 		sqlManager.initialize();
 		
 		MinecraftForge.EVENT_BUS.register(dataManager);
-		GameRegistry.registerPlayerTracker(new DBPlayerTracker());
+		GameRegistry.registerPlayerTracker(playerTracker);
+		GameRegistry.registerCraftingHandler(playerTracker);
 	}
 	
 	@EventHandler

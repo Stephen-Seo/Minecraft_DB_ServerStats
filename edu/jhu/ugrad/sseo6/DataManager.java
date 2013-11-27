@@ -6,9 +6,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 
 public class DataManager {
 	
@@ -57,6 +61,10 @@ public class DataManager {
 		
 	}
 	
+	public void playerCraftedItem(EntityPlayer player, ItemStack item) {
+		
+	}
+	
 	@ForgeSubscribe
 	public void playerDeathEvent(LivingDeathEvent event){
 		if(!(event.entityLiving instanceof EntityPlayer) && event.entityLiving.worldObj.isRemote)
@@ -66,6 +74,21 @@ public class DataManager {
 	
 	@ForgeSubscribe
 	public void playerChatEvent(ServerChatEvent event){
+		
+	}
+	
+	@ForgeSubscribe
+	public void playerPickupEvent(EntityItemPickupEvent event){
+		
+	}
+	
+	@ForgeSubscribe
+	public void playerInteractEvent(PlayerInteractEvent event){
+		
+	}
+	
+	@ForgeSubscribe
+	public void playerItemBreakEvent(PlayerDestroyItemEvent event){
 		
 	}
 	
