@@ -16,6 +16,7 @@ import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import edu.jhu.ugrad.sseo6.util.Pair;
+import edu.jhu.ugrad.sseo6.util.Utility;
 
 public class DataManager {
 	
@@ -112,6 +113,14 @@ public class DataManager {
 	
 	@ForgeSubscribe
 	public void playerChatEvent(ServerChatEvent event){
+		Calendar calObj = Calendar.getInstance();
+		java.sql.Date dateObj = new java.sql.Date(calObj.getTimeInMillis());
+		java.sql.Time timeObj = new java.sql.Time(calObj.getTimeInMillis());
+		String strTime = dateObj.toString() + " " + timeObj.toString();
+		
+		DBServerMain.instance().sqlManager.updateQuery(
+				"INSERT INTO Chat_Log (Time, Player, Message) VALUES (" + strTime +
+				", " + event.username + ", \"" + Utility.escapeDoubleQuotes(event.message) + "\")", null);
 		
 	}
 	
