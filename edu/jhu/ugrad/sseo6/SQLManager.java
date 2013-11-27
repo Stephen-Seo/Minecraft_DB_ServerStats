@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -82,6 +83,7 @@ public class SQLManager {
 		
 		if(con != null && con.isValid(10))
 		{
+			System.out.println("NOTE: Connection to mysql server successful!");
 			DBServerMain.instance().dataManager.initialize(con);
 			con.close();
 			return true;
@@ -120,7 +122,7 @@ public class SQLManager {
 		}
 		
 		boolean preserveConnection = false;
-		Statement statement = null;
+		PreparedStatement statement = null;
 		Connection con = null;
 		if(connection == null)
 			con = getConnection();
@@ -130,8 +132,8 @@ public class SQLManager {
 			con = connection;
 		}
 		try {
-			statement = con.createStatement();
-			statement.executeUpdate(query);
+			statement = con.prepareStatement(query);
+			statement.executeUpdate();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} catch (NullPointerException e) {

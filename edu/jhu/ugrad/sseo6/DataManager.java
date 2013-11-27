@@ -7,6 +7,7 @@ import java.sql.Statement;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 
 public class DataManager {
@@ -48,7 +49,8 @@ public class DataManager {
 	}
 	
 	public void playerLoggedOut(EntityPlayer player){
-		
+		//player.experienceLevel
+		//player.getScore()
 	}
 
 	public void playerChangedDimension(EntityPlayer player) {
@@ -57,6 +59,13 @@ public class DataManager {
 	
 	@ForgeSubscribe
 	public void playerDeathEvent(LivingDeathEvent event){
+		if(!(event.entityLiving instanceof EntityPlayer) && event.entityLiving.worldObj.isRemote)
+			return;
+		//event.source.getSourceOfDamage().getEntityName()
+	}
+	
+	@ForgeSubscribe
+	public void playerChatEvent(ServerChatEvent event){
 		
 	}
 	
