@@ -7,7 +7,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -92,6 +91,10 @@ public class SQLManager {
 		return false;
 	}
 	
+	/**
+	 * Attempts to get a connection to the database.
+	 * @return The connection if found, null otherwise.
+	 */
 	public Connection getConnection(){
 		Connection con = null;
 		Properties cProps = new Properties();
@@ -167,7 +170,7 @@ public class SQLManager {
 		}
 		
 		boolean preserveConnection = false;
-		Statement statement = null;
+		PreparedStatement statement = null;
 		ResultSet results = null;
 		Connection con = null;
 		if(connection == null)
@@ -179,10 +182,10 @@ public class SQLManager {
 		}
 		String result = null;
 		try {
-			statement = con.createStatement();
-			results = statement.executeQuery(query);
-			results.next();
-			result = results.getString(1);
+			statement = con.prepareStatement(query);
+			results = statement.executeQuery();
+			if(results.next())
+				result = results.getString(1);
 		} catch (SQLException e) {}
 
 		if(results != null)
@@ -217,7 +220,7 @@ public class SQLManager {
 		}
 		
 		boolean preserveConnection = false;
-		Statement statement = null;
+		PreparedStatement statement = null;
 		ResultSet results = null;
 		Connection con = null;
 		if(connection == null)
@@ -230,8 +233,8 @@ public class SQLManager {
 		Collection<String> resultCol = new LinkedList<String>();
 
 		try {
-			statement = con.createStatement();
-			results = statement.executeQuery(query);
+			statement = con.prepareStatement(query);
+			results = statement.executeQuery();
 			while(results.next())
 			{
 				resultCol.add(results.getString(1));
@@ -271,7 +274,7 @@ public class SQLManager {
 		}
 		
 		boolean preserveConnection = false;
-		Statement statement = null;
+		PreparedStatement statement = null;
 		ResultSet results = null;
 		Connection con = null;
 		if(connection == null)
@@ -284,8 +287,8 @@ public class SQLManager {
 		Collection<String> resultCol = new LinkedList<String>();
 
 		try {
-			statement = con.createStatement();
-			results = statement.executeQuery(query);
+			statement = con.prepareStatement(query);
+			results = statement.executeQuery();
 			results.next();
 			int i = 0;
 			while(i < rowSize) {
