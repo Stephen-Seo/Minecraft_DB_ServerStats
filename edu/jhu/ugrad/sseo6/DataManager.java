@@ -1,15 +1,12 @@
 package edu.jhu.ugrad.sseo6;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.Hashtable;
 
-import edu.jhu.ugrad.sseo6.util.Pair;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.ForgeSubscribe;
@@ -18,6 +15,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import edu.jhu.ugrad.sseo6.util.Pair;
 
 public class DataManager {
 	
@@ -30,26 +28,7 @@ public class DataManager {
 	}
 	
 	public boolean initialize(Connection con){
-		Statement statement;
-		ResultSet result;
-		try {
-			statement = con.createStatement();
-			result = statement.executeQuery("SELECT Username FROM Player");
-			
-			while(result.next()){
-				
-			}
-			try {
-				result.close();
-			} catch(SQLException e) {}
-			try {
-				statement.close();
-			} catch(SQLException e) {}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return false;
-		}
+		setupItems(con);
 		
 		initialized = true;
 		return true;
@@ -162,7 +141,24 @@ public class DataManager {
 	 * @return True if the username is in the database.
 	 */
 	private boolean checkPlayerEntry(String username, Connection connection){
-		if(DBServerMain.instance().sqlManager.standardQuery("SELECT Username FROM Player WHERE Username = " + username, connection) == null)
+		if(DBServerMain.instance().sqlManager.standardQuery(
+				"SELECT Username FROM Player WHERE Username = " + username, connection) == null)
+			return false;
+		return true;
+	}
+	
+	/**
+	 * Checks if an entry for the primary key pair username/itemID exists
+	 * in the Item_info table on the database.
+	 * @param username A String object that is the username to check.
+	 * @param itemID An int that is the itemID to check.
+	 * @param connection The SQL connection to use if not null.
+	 * @return True if the username/itemID entry is in the database.
+	 */
+	private boolean checkItemEntryForPlayer(String username, int itemID, Connection connection){
+		if(DBServerMain.instance().sqlManager.standardQuery(
+				"SELECT Username FROM Item_Info WHERE Player = " + username
+				+ " AND Item_ID = " + itemID, connection) == null)
 			return false;
 		return true;
 	}
@@ -173,7 +169,8 @@ public class DataManager {
 		java.sql.Time timeObj = new java.sql.Time(calObj.getTimeInMillis());
 		String strTime = dateObj.toString() + " " + timeObj.toString();
 		
-		DBServerMain.instance().sqlManager.updateQuery("INSERT INTO Player VALUES ('" + player.username + "', '" + strTime + "', " +
+		DBServerMain.instance().sqlManager.updateQuery(
+				"INSERT INTO Player VALUES ('" + player.username + "', '" + strTime + "', " +
 				player.experienceLevel + ", " + player.getScore() + ")", connection);
 		
 		
@@ -183,5 +180,34 @@ public class DataManager {
 			DBServerMain.instance().sqlManager.updateQuery("INSERT INTO Time_Spent VALUES ('" + player.username +
 					"', " + dim + ", 0)", connection);
 		}
+	}
+	
+	private void setupItems(Connection connection){
+		boolean preserveConnection = false;
+		Connection con = null;
+		if(connection == null)
+			con = DBServerMain.instance().sqlManager.getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		
+		if(DBServerMain.instance().sqlManager.standardQuery(
+				"SELECT ID FROM Items WHERE ID = 1", con) == null)
+		{
+			for(Item item : Item.itemsList){
+				if(item != null)
+				{
+					DBServerMain.instance().sqlManager.updateQuery(
+							"INSERT INTO Items VALUES (" + item.itemID + ", \"" + item.getItemDisplayName(new ItemStack(item)) + "\")", con);
+				}
+			}
+		}
+		
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
 	}
 }

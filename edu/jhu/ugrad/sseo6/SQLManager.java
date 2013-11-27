@@ -17,7 +17,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 public class SQLManager {
-	private boolean dbExists;
+	private boolean dbExists = false;
 
 	private String hostname = "";
 	private String username = "";
@@ -27,7 +27,7 @@ public class SQLManager {
 
 	public void initialize(){
 		try {
-			dbExists = initializeCheck();
+			initializeCheck();
 		} catch (SQLException e) {
 			dbExists = false;
 			System.out.println("ERROR: DBServer_Stats failed to connect to the database!");
@@ -44,7 +44,7 @@ public class SQLManager {
 			System.out.println("ERROR: DBServer_Stats failed to connect to the database!");
 	}
 	
-	private boolean initializeCheck() throws SQLException, IOException {
+	private void initializeCheck() throws SQLException, IOException {
 		
 		FileInputStream fis = null;
 		fis = new FileInputStream(DBServerMain.xml);
@@ -65,30 +65,31 @@ public class SQLManager {
 			xmlReader.close();
 		} catch (XMLStreamException e) {
 			e.printStackTrace();
-			return false;
+			dbExists = false;
+			return;
 		} catch (FactoryConfigurationError e) {
 			e.printStackTrace();
-			return false;
+			dbExists = false;
+			return;
 		}
 
 		if(password.equals(DBServerMain.defaultPassword) || database.equals(DBServerMain.defaultDatabase)
 				|| username.equals(DBServerMain.defaultUsername)){
 			System.out.println("ERROR: Default username, password, and/or database detected in DBSettings.xml!");
 			System.out.println("  Please change the settings in the DBSettings.xml file.");
-			return false;
+			dbExists = false;
+			return;
 		}
 		
 		Connection con = getConnection();
 		
 		if(con != null && con.isValid(10))
 		{
+			dbExists = true;
 			System.out.println("NOTE: Connection to mysql server successful!");
 			DBServerMain.instance().dataManager.initialize(con);
 			con.close();
-			return true;
 		}
-
-		return false;
 	}
 	
 	/**
