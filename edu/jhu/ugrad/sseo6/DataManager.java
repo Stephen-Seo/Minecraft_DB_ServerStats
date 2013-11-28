@@ -345,7 +345,7 @@ public class DataManager {
 			
 			DBServerMain.instance().sqlManager.updateQuery(
 					"INSERT INTO Chat_Log (Time, Player, Message) VALUES ('" + strTime +
-					"', '" + event.username + "', \"" + Utility.escapeDoubleQuotes(event.message) + "\")", null);
+					"', '" + event.username + "', \"" + Utility.escapeSQLQuery(event.message) + "\")", null);
 		}
 	}
 	
