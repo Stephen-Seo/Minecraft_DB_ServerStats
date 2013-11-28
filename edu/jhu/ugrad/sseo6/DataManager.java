@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Scanner;
 
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -218,9 +219,106 @@ public class DataManager {
 		if(!initialized)
 			return;
 		
-		if(!(event.entityLiving instanceof EntityPlayer) && event.entityLiving.worldObj.isRemote)
+		if(!((event.source.getSourceOfDamage() != null && event.source.getSourceOfDamage() instanceof EntityPlayer) || (event.entityLiving instanceof EntityPlayer))
+				|| event.entityLiving.worldObj.isRemote)
 			return;
-		//event.source.getSourceOfDamage().getEntityName()
+		
+		String deadEName;
+		String killerEName;
+		
+		deadEName = event.entityLiving.getEntityName();
+		
+		if(event.source.getSourceOfDamage() == null)
+			killerEName = event.source.damageType;
+		else
+			killerEName = event.source.getSourceOfDamage().getEntityName();
+
+		Calendar calObj = Calendar.getInstance();
+		java.sql.Date dateObj = new java.sql.Date(calObj.getTimeInMillis());
+		java.sql.Time timeObj = new java.sql.Time(calObj.getTimeInMillis());
+		String strTime = dateObj.toString() + " " + timeObj.toString();
+		
+		//Kills
+		if(event.source.getSourceOfDamage() != null && event.source.getSourceOfDamage() instanceof EntityPlayer){
+			boolean killedIsPlayer = false;
+			if(event.entityLiving instanceof EntityPlayer)
+				killedIsPlayer = true;
+			
+			Integer itemID = null;
+			if(((EntityPlayer)event.source.getSourceOfDamage()).getHeldItem() != null)
+				itemID = ((EntityPlayer)event.source.getSourceOfDamage()).getHeldItem().itemID;
+			
+			new Thread(new playerKillRunnable(killerEName, deadEName, killedIsPlayer, itemID, strTime)).run();
+		}
+		
+		//Deaths
+		if(event.entityLiving instanceof EntityPlayer){
+			boolean killerIsPlayer = false;
+			if(event.source.getSourceOfDamage() != null && event.source.getSourceOfDamage() instanceof EntityPlayer)
+				killerIsPlayer = true;
+			
+			Integer itemID = null;
+			if(event.source.getSourceOfDamage() != null && ((EntityLiving)event.source.getSourceOfDamage()).getHeldItem() != null)
+				itemID = ((EntityLiving)event.source.getSourceOfDamage()).getHeldItem().itemID;
+			
+			new Thread(new playerDeathRunnable(deadEName, killerEName, killerIsPlayer, itemID, strTime)).run();
+		}
+	}
+	
+	private class playerKillRunnable implements Runnable {
+		String username;
+		String entityName;
+		boolean isPlayer;
+		Integer itemID;
+		String time;
+		
+		public playerKillRunnable(String username, String entityName, boolean isPlayer, Integer itemID, String time){
+			this.username = username;
+			this.entityName = entityName;
+			this.isPlayer = isPlayer;
+			this.itemID = itemID;
+			this.time = time;
+		}
+		
+		@Override
+		public void run() {
+			if(itemID != null)
+				DBServerMain.instance().sqlManager.updateQuery(
+						"INSERT INTO Kills (Player, Entity_Name, Is_Player, Item_ID, Time) VALUES ('" + username + "', '" + entityName + "', " +
+						isPlayer + ", " + itemID + ", '" + time + "')", null);
+			else
+				DBServerMain.instance().sqlManager.updateQuery(
+						"INSERT INTO Kills (Player, Entity_Name, Is_Player, Time) VALUES ('" + username + "', '" + entityName + "', " +
+						isPlayer + ", '" + time + "')", null);
+		}
+	}
+	
+	private class playerDeathRunnable implements Runnable {
+		String username;
+		String entityName;
+		boolean isPlayer;
+		Integer itemID;
+		String time;
+		
+		public playerDeathRunnable(String username, String entityName, boolean isPlayer, Integer itemID, String time){
+			this.username = username;
+			this.entityName = entityName;
+			this.isPlayer = isPlayer;
+			this.itemID = itemID;
+			this.time = time;
+		}
+		
+		@Override
+		public void run() {
+			if(itemID != null)
+				DBServerMain.instance().sqlManager.updateQuery(
+						"INSERT INTO Deaths (Player, Entity_Name, Is_Player, Item_ID, Time) VALUES ('" + username + "', '" + entityName + "', " +
+						isPlayer + ", " + itemID + ", '" + time + "')", null);
+			else
+				DBServerMain.instance().sqlManager.updateQuery(
+						"INSERT INTO Deaths (Player, Entity_Name, Is_Player, Time) VALUES ('" + username + "', '" + entityName + "', " +
+						isPlayer + ", '" + time + "')", null);
+		}
 	}
 	
 	@ForgeSubscribe
