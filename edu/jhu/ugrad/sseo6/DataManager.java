@@ -43,7 +43,7 @@ public class DataManager {
 			initialized = false;
 			return false;
 		}
-		setupItems(con);
+		//setupItems(con);
 		
 		initialized = true;
 		return true;
@@ -533,6 +533,8 @@ public class DataManager {
 		}
 	}
 	
+	//Only works client-side, crashes in server environment.
+	@Deprecated
 	private void setupItems(Connection connection){
 		boolean preserveConnection = false;
 		Connection con = null;
