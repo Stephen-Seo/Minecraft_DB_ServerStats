@@ -18,4 +18,17 @@ public class Pair <A, B> {
 	public void setB(B b){
 		this.b = b;
 	}
+	
+	@Override
+	public int hashCode() {
+		return a.hashCode() + b.hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Pair<?,?>))
+			return false;
+		
+		return ((Pair<?,?>)obj).a.equals(a) && ((Pair<?,?>)obj).b.equals(b);
+	}
 }
