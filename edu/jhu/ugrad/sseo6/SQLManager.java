@@ -111,6 +111,45 @@ public class SQLManager {
 	}
 	
 	/**
+	 * Execute a query of any type.
+	 * @param query The SQL query that is executed.
+	 * @param connection The connection to use, if not null.
+	 */
+	public void anyQuery(String query, Connection connection){
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return;
+		}
+		boolean preserveConnection = false;
+		PreparedStatement statement = null;
+		Connection con = null;
+		if(connection == null)
+			con = getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		try {
+			statement = con.prepareStatement(query);
+			statement.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
+	}
+	
+	/**
 	 * Updates the SQL Database with the query that is an
 	 * insert/update/delete.
 	 * If a connection is provided (is not null), then that connection
@@ -187,7 +226,9 @@ public class SQLManager {
 			results = statement.executeQuery();
 			if(results.next())
 				result = results.getString(1);
-		} catch (SQLException e) {}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
 		if(results != null)
 			try {
@@ -240,7 +281,9 @@ public class SQLManager {
 			{
 				resultCol.add(results.getString(1));
 			}
-		} catch (SQLException e) {}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
 		if(results != null)
 			try {
@@ -295,7 +338,9 @@ public class SQLManager {
 			while(i < rowSize) {
 				resultCol.add(results.getString(++i));
 			}
-		} catch (SQLException e) {}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 
 		if(results != null)
 			try {
@@ -311,6 +356,59 @@ public class SQLManager {
 			} catch (SQLException e) {}
 		
 		return resultCol;
+	}
+	
+	/**
+	 * Checks if a query causes an SQLException.
+	 * @param query A String object containing the SQL query to check.
+	 * @param connection The SQL connection to use if not null.
+	 * @return True if the query caused an SQLException.
+	 */
+	public boolean querySQLExceptionCheck(String query, Connection connection){
+		if(!dbExists)
+		{
+			System.out.println("WARNING: Initial connection attempt failed, therefore ignoring query!");
+			return false;
+		}
+		
+		boolean preserveConnection = false;
+		boolean exceptionOccurred = false;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		Connection con = null;
+		if(connection == null)
+			con = getConnection();
+		else
+		{
+			preserveConnection = true;
+			con = connection;
+		}
+		
+		try {
+			statement = con.prepareStatement(query);
+			try {
+				results = statement.executeQuery();
+			} catch(SQLException e) {
+				exceptionOccurred = true;
+			}
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
+		
+		if(results != null)
+			try {
+				results.close();
+			} catch (SQLException e) {}
+		if(statement != null)
+			try {
+				statement.close();
+			} catch (SQLException e) {}
+		if(!preserveConnection && con != null)
+			try {
+				con.close();
+			} catch (SQLException e) {}
+		
+		return exceptionOccurred;
 	}
 /*
 	public class SQLCallUpdate implements Runnable {

@@ -1,9 +1,12 @@
 package edu.jhu.ugrad.sseo6;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -29,14 +32,62 @@ public class DataManager {
 	}
 	
 	public boolean initialize(Connection con){
+		if(!checkInitTables(con))
+		{
+			initialized = false;
+			return false;
+		}
 		setupItems(con);
 		
 		initialized = true;
 		return true;
 	}
 	
+	/**
+	 * Checks if the tables have been initialized in the database.
+	 * If the tables have not been initialized, an attempt is made
+	 * to initialize them using a mc_db.sql file that should be
+	 * located in the DBServerStats folder that is auto-generated
+	 * by this mod.
+	 * @param con The SQL connection to use if if not null.
+	 */
+	private boolean checkInitTables(Connection con) {
+		if(DBServerMain.instance().sqlManager.querySQLExceptionCheck("SELECT * FROM Player", con))
+		{
+			File sqlFile = new File(DBServerMain.modDir+"/mc_db.sql");
+			Scanner fs = null;
+			try {
+				fs = new Scanner(sqlFile);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				System.out.println("ERROR: Cannot initialize database as there is no mc_db.sql file in");
+				System.out.println("the directory "+DBServerMain.modDir+" .");
+				return false;
+			}
+			String res;
+			
+			while(fs.hasNext())
+			{
+				res = fs.nextLine();
+				if(!res.equals(""))
+				{
+					System.out.println("Executing: " + res);
+					DBServerMain.instance().sqlManager.anyQuery(res, con);
+				}
+			}
+			
+			fs.close();
+			return true;
+		}
+		else
+			return true;
+	}
+
 	public void playerLoggedIn(EntityPlayer player){
 		if(player.worldObj.isRemote)
+			return;
+		
+		if(!initialized)
 			return;
 		
 		Connection con = DBServerMain.instance().sqlManager.getConnection();
@@ -56,6 +107,9 @@ public class DataManager {
 	}
 	
 	public void playerLoggedOut(EntityPlayer player){
+		if(!initialized)
+			return;
+		
 		int expLevel = player.experienceLevel;
 		int score = player.getScore();
 		Pair<Integer, Long> prev = timeAtLogin.remove(player.username);
@@ -79,6 +133,9 @@ public class DataManager {
 	}
 
 	public void playerChangedDimension(EntityPlayer player) {
+		if(!initialized)
+			return;
+		
 		Pair<Integer, Long> prev = timeAtLogin.remove(player.username);
 		int timeSpent = (int)((Calendar.getInstance().getTimeInMillis() - prev.b) / 1000);
 		
@@ -101,11 +158,16 @@ public class DataManager {
 	}
 	
 	public void playerCraftedItem(EntityPlayer player, ItemStack item) {
+		if(!initialized)
+			return;
 		
 	}
 	
 	@ForgeSubscribe
 	public void playerDeathEvent(LivingDeathEvent event){
+		if(!initialized)
+			return;
+		
 		if(!(event.entityLiving instanceof EntityPlayer) && event.entityLiving.worldObj.isRemote)
 			return;
 		//event.source.getSourceOfDamage().getEntityName()
@@ -113,6 +175,9 @@ public class DataManager {
 	
 	@ForgeSubscribe
 	public void playerChatEvent(ServerChatEvent event){
+		if(!initialized)
+			return;
+		
 		Calendar calObj = Calendar.getInstance();
 		java.sql.Date dateObj = new java.sql.Date(calObj.getTimeInMillis());
 		java.sql.Time timeObj = new java.sql.Time(calObj.getTimeInMillis());
@@ -126,20 +191,28 @@ public class DataManager {
 	
 	@ForgeSubscribe
 	public void playerPickupEvent(EntityItemPickupEvent event){
+		if(!initialized)
+			return;
 		
 	}
 	
 	@ForgeSubscribe
 	public void playerInteractEvent(PlayerInteractEvent event){
+		if(!initialized)
+			return;
 		
 	}
 	
 	@ForgeSubscribe
 	public void playerItemBreakEvent(PlayerDestroyItemEvent event){
+		if(!initialized)
+			return;
 		
 	}
 	
 	public void serverShuttingDown(){
+		if(!initialized)
+			return;
 		
 	}
 	
