@@ -19,6 +19,7 @@ import net.minecraftforge.common.DimensionManager;
 import net.minecraftforge.event.ForgeSubscribe;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
@@ -90,9 +91,6 @@ public class DataManager {
 	}
 
 	public void playerLoggedIn(EntityPlayer player){
-		if(player.worldObj.isRemote)
-			return;
-		
 		if(!initialized)
 			return;
 		
@@ -326,6 +324,9 @@ public class DataManager {
 		if(!initialized)
 			return;
 		
+		if(event.player.worldObj.isRemote)
+			return;
+		
 		new Thread(new playerChatEventRunnable(event)).run();
 	}
 	
@@ -353,6 +354,9 @@ public class DataManager {
 	public void playerPickupEvent(EntityItemPickupEvent event){
 		if(!initialized)
 			return;
+		
+		if(event.entityPlayer.worldObj.isRemote)
+			return;
 
 		updateItemEntryLocal(event.entityPlayer.username, event.item.getEntityItem().itemID, 0, event.item.getEntityItem().stackSize);
 	}
@@ -360,6 +364,9 @@ public class DataManager {
 	@ForgeSubscribe
 	public void playerItemBreakEvent(PlayerDestroyItemEvent event){
 		if(!initialized)
+			return;
+		
+		if(event.entityPlayer.worldObj.isRemote)
 			return;
 		
 		updateItemEntryLocal(event.entityPlayer.username, event.original.itemID, 1, event.original.stackSize);
@@ -370,12 +377,27 @@ public class DataManager {
 		if(!initialized)
 			return;
 		
+		if(event.entityPlayer.worldObj.isRemote)
+			return;
+		
 		if(event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK ||
 				event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK)
 		{
 			if(event.entityPlayer.getHeldItem() != null)
 				updateItemEntryLocal(event.entityPlayer.username, event.entityPlayer.getHeldItem().itemID, 2, 1);
 		}
+	}
+	
+	@ForgeSubscribe
+	public void playerAttackEvent(AttackEntityEvent event){
+		if(!initialized)
+			return;
+		
+		if(event.entityPlayer.worldObj.isRemote)
+			return;
+		
+		if(event.entityPlayer.getHeldItem() != null)
+			updateItemEntryLocal(event.entityPlayer.username, event.entityPlayer.getHeldItem().itemID, 2, 1);
 	}
 	
 	public void playerCraftedItem(EntityPlayer player, ItemStack item) {

@@ -10,16 +10,22 @@ public class DBPlayerTracker implements IPlayerTracker, ICraftingHandler{
 
 	@Override
 	public void onPlayerLogin(EntityPlayer player) {
+		if(player.worldObj.isRemote)
+			return;
 		DBServerMain.instance().dataManager.playerLoggedIn(player);
 	}
 
 	@Override
 	public void onPlayerLogout(EntityPlayer player) {
+		if(player.worldObj.isRemote)
+			return;
 		DBServerMain.instance().dataManager.playerLoggedOut(player);
 	}
 
 	@Override
 	public void onPlayerChangedDimension(EntityPlayer player) {
+		if(player.worldObj.isRemote)
+			return;
 		DBServerMain.instance().dataManager.playerChangedDimension(player);
 	}
 
@@ -31,11 +37,15 @@ public class DBPlayerTracker implements IPlayerTracker, ICraftingHandler{
 	@Override
 	public void onCrafting(EntityPlayer player, ItemStack item,
 			IInventory craftMatrix) {
+		if(player.worldObj.isRemote)
+			return;
 		DBServerMain.instance().dataManager.playerCraftedItem(player, item);
 	}
 
 	@Override
 	public void onSmelting(EntityPlayer player, ItemStack item) {
+		if(player.worldObj.isRemote)
+			return;
 		DBServerMain.instance().dataManager.playerCraftedItem(player, item);
 	}
 
