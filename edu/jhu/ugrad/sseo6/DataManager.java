@@ -157,7 +157,8 @@ public class DataManager {
 			
 			int timeSpent = (int)((Calendar.getInstance().getTimeInMillis() - prev.b) / 1000);
 			timeSpent += Integer.parseInt(DBServerMain.instance().sqlManager.standardQuery(
-					"SELECT Time FROM Time_Spent WHERE Player = '" + player.username + "'", con));
+					"SELECT Time FROM Time_Spent WHERE Player = '" + player.username + "'" +
+					" AND Dimension_ID = " + player.dimension, con));
 			DBServerMain.instance().sqlManager.updateQuery(
 					"UPDATE Time_Spent SET Time = " + timeSpent +
 					" WHERE Player = '" + player.username + "' AND Dimension_ID = " + player.dimension, con);
