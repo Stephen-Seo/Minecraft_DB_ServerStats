@@ -257,7 +257,7 @@ public class DataManager {
 				killerIsPlayer = true;
 			
 			Integer itemID = null;
-			if(event.source.getSourceOfDamage() != null && ((EntityLiving)event.source.getSourceOfDamage()).getHeldItem() != null)
+			if(event.source.getSourceOfDamage() != null && event.source.getSourceOfDamage() instanceof EntityLiving && ((EntityLiving)event.source.getSourceOfDamage()).getHeldItem() != null)
 				itemID = ((EntityLiving)event.source.getSourceOfDamage()).getHeldItem().itemID;
 			
 			new Thread(new playerDeathRunnable(deadEName, killerEName, killerIsPlayer, itemID, strTime)).run();
