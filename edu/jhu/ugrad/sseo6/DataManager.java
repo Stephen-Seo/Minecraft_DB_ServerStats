@@ -369,7 +369,7 @@ public class DataManager {
 		if(event.entityPlayer.worldObj.isRemote)
 			return;
 		
-		updateItemEntryLocal(event.entityPlayer.username, event.original.itemID, 1, event.original.stackSize);
+		updateItemEntryLocal(event.entityPlayer.username, event.original.itemID, 1, 1);
 	}
 	
 	@ForgeSubscribe
