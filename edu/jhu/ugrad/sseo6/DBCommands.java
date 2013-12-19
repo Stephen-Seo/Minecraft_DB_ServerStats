@@ -54,7 +54,7 @@ public class DBCommands implements ICommand {
 		if(astring[0].equals("deaths")) {
 			query = "SELECT count(*) AS Total FROM Deaths WHERE Player = '" + name + "'";
 			query2 = "SELECT Entity_Name, count(*) AS Deaths FROM Deaths"
-					+ " WHERE Player = '" + name + "' GROUP BY Entity_Name DESC";
+					+ " WHERE Player = '" + name + "' GROUP BY Entity_Name ORDER BY Deaths DESC";
 			Connection con = DBServerMain.instance().sqlManager.getConnection();
 			if(con == null)
 				return;
@@ -74,7 +74,26 @@ public class DBCommands implements ICommand {
 			}
 		}
 		else if(astring[0].equals("kills")) {
-			
+			query = "SELECT count(*) AS Total FROM Kills WHERE Player = '" + name + "'";
+			query2 = "SELECT Entity_Name, count(*) AS Kills FROM Kills"
+					+ " WHERE Player = '" + name + "' GROUP BY Entity_Name ORDER BY Kills DESC";
+			Connection con = DBServerMain.instance().sqlManager.getConnection();
+			if(con == null)
+				return;
+			result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			if(!result.equals("0"))
+				result2 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
+			try {
+				con.close();
+			} catch (SQLException e) {}
+			if(result.equals("0"))
+				icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("You killed "
+						+ result + " times."));
+			else {
+				String[] res = result2.toArray(new String[2]);
+				icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("You killed "
+						+ result + " times. You killed mostly " + res[0] + " " + res[1] + " times."));
+			}
 		}
 		else if(astring[0].equals("item")) {
 			
