@@ -360,6 +360,7 @@ public class DataManager {
 			return;
 
 		updateItemEntryLocal(event.entityPlayer.username, event.item.getEntityItem().itemID, 0, event.item.getEntityItem().stackSize);
+		queueItemUpdate();
 	}
 	
 	@ForgeSubscribe
@@ -371,6 +372,7 @@ public class DataManager {
 			return;
 		
 		updateItemEntryLocal(event.entityPlayer.username, event.original.itemID, 1, 1);
+		queueItemUpdate();
 	}
 	
 	@ForgeSubscribe
@@ -385,7 +387,10 @@ public class DataManager {
 				event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK)
 		{
 			if(event.entityPlayer.getHeldItem() != null)
+			{
 				updateItemEntryLocal(event.entityPlayer.username, event.entityPlayer.getHeldItem().itemID, 2, 1);
+				queueItemUpdate();
+			}
 		}
 	}
 	
@@ -406,50 +411,75 @@ public class DataManager {
 			return;
 		
 		updateItemEntryLocal(player.username, item.itemID, 3, item.stackSize);
+		queueItemUpdate();
 	}
 	
 	public void serverShuttingDown(){
 		if(!initialized)
 			return;
-		String username;
-		int itemID;
-		int collected;
-		int broken;
-		int used;
-		int created;
-		Iterator<Entry<Pair<String,Integer>, Integer[] > > iiter = itemInfo.entrySet().iterator();
-		Connection con = DBServerMain.instance().sqlManager.getConnection();
-		while(iiter.hasNext())
-		{
-			Entry<Pair<String,Integer>, Integer[] > entry = iiter.next();
-			
-			username = entry.getKey().a;
-			itemID = entry.getKey().b;
-			collected = entry.getValue()[0];
-			broken = entry.getValue()[1];
-			used = entry.getValue()[2];
-			created = entry.getValue()[3];
-			
-			checkItemEntryForPlayer(username, itemID, con);
-			
-			Collection<String> res = DBServerMain.instance().sqlManager.standardQueryRow(
-					"SELECT Collected, Broken, Used, Created FROM Item_Info WHERE Player = '" + username +
-					"' AND Item_ID = " + itemID, con, 4);
-			
-			String[] resA = res.toArray(new String[4]);
-			collected += Integer.parseInt(resA[0]);
-			broken += Integer.parseInt(resA[1]);
-			used += Integer.parseInt(resA[2]);
-			created += Integer.parseInt(resA[3]);
-			
-			DBServerMain.instance().sqlManager.updateQuery(
-					"UPDATE Item_Info SET Collected = " + collected + ", Broken = " + broken + ", Used = " + used +
-					", Created = " + created + " WHERE Player = '" + username + "' AND Item_ID = " + itemID, con);
-		}
 		
 		try {
-			con.close();
-		} catch (SQLException e) {}
+			queueItemUpdate().join();
+		} catch (InterruptedException e) {}
+	}
+	
+	public Thread queueItemUpdate(){
+		Thread itemUpdateThread = new Thread(new ItemUpdate());
+		itemUpdateThread.run();
+		return itemUpdateThread;
+	}
+	
+	private class ItemUpdate implements Runnable {
+
+		@Override
+		public void run() {
+			String username;
+			int itemID;
+			int collected;
+			int broken;
+			int used;
+			int created;
+			Connection con = null;
+			synchronized(itemInfo)
+			{
+				{
+					Iterator<Entry<Pair<String,Integer>, Integer[] > > iiter = itemInfo.entrySet().iterator();
+					con = DBServerMain.instance().sqlManager.getConnection();
+					while(iiter.hasNext())
+					{
+						Entry<Pair<String,Integer>, Integer[] > entry = iiter.next();
+						
+						username = entry.getKey().a;
+						itemID = entry.getKey().b;
+						collected = entry.getValue()[0];
+						broken = entry.getValue()[1];
+						used = entry.getValue()[2];
+						created = entry.getValue()[3];
+						
+						checkItemEntryForPlayer(username, itemID, con);
+						
+						Collection<String> res = DBServerMain.instance().sqlManager.standardQueryRow(
+								"SELECT Collected, Broken, Used, Created FROM Item_Info WHERE Player = '" + username +
+								"' AND Item_ID = " + itemID, con, 4);
+						
+						String[] resA = res.toArray(new String[4]);
+						collected += Integer.parseInt(resA[0]);
+						broken += Integer.parseInt(resA[1]);
+						used += Integer.parseInt(resA[2]);
+						created += Integer.parseInt(resA[3]);
+						
+						DBServerMain.instance().sqlManager.updateQuery(
+								"UPDATE Item_Info SET Collected = " + collected + ", Broken = " + broken + ", Used = " + used +
+								", Created = " + created + " WHERE Player = '" + username + "' AND Item_ID = " + itemID, con);
+					}
+				}
+				itemInfo = new HashMap<Pair<String, Integer>, Integer[] >();
+			}
+			try {
+				con.close();
+			} catch (SQLException e) {}
+		}
+		
 	}
 	
 	/**
