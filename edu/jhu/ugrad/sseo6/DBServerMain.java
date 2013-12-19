@@ -15,6 +15,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.event.FMLServerStoppingEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.registry.GameRegistry;
@@ -30,6 +31,7 @@ public class DBServerMain {
 	protected DataManager dataManager = new DataManager();
 	protected SQLManager sqlManager = new SQLManager();
 	private DBPlayerTracker playerTracker = new DBPlayerTracker();
+	private DBCommands dbCommands = new DBCommands();
 	
 	protected static final String modDir = "./DBServerStats";
 	protected static final String xml = modDir + "/DBSettings.xml";
@@ -74,6 +76,11 @@ public class DBServerMain {
 		MinecraftForge.EVENT_BUS.register(dataManager);
 		GameRegistry.registerPlayerTracker(playerTracker);
 		GameRegistry.registerCraftingHandler(playerTracker);
+	}
+	
+	@EventHandler
+	public void startup(FMLServerStartingEvent event){
+		event.registerServerCommand(dbCommands);
 	}
 	
 	@EventHandler

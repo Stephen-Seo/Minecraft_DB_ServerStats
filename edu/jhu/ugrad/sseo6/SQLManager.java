@@ -7,6 +7,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Properties;
@@ -328,7 +329,7 @@ public class SQLManager {
 			preserveConnection = true;
 			con = connection;
 		}
-		Collection<String> resultCol = new LinkedList<String>();
+		Collection<String> resultCol = new ArrayList<String>(rowSize);
 
 		try {
 			statement = con.prepareStatement(query);
