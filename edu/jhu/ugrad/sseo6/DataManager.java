@@ -194,11 +194,13 @@ public class DataManager {
 			
 			Connection con = DBServerMain.instance().sqlManager.getConnection();
 			try {
+			System.out.println("Pre time: " + timeSpent + " with prev.a: " + prev.a);
 			timeSpent += Integer.parseInt(DBServerMain.instance().sqlManager.standardQuery(
-					"SELECT Time FROM Time_Spent WHERE Player = '" + player.username + "'", con));
+					"SELECT Time FROM Time_Spent WHERE Player = '" + player.username + "' AND Dimension_ID = " + prev.a, con));
+			System.out.println("Post time: " + timeSpent);
 			DBServerMain.instance().sqlManager.updateQuery(
 					"UPDATE Time_Spent SET Time = " + timeSpent +
-					" WHERE Player = '" + player.username + "' AND Dimension_ID = " + player.dimension, con);
+					" WHERE Player = '" + player.username + "' AND Dimension_ID = " + prev.a, con);
 			} catch (NullPointerException e) {
 				e.printStackTrace();
 				System.out.println("  Was the database incorrectly initialized?");
