@@ -32,6 +32,7 @@ public class DataManager {
 	
 	private HashMap<String, Pair<Integer, Long> > timeAtLogin;
 	private HashMap<Pair<String, Integer>, Integer[] > itemInfo;
+	private Integer iiCounter = 0;
 	
 	public DataManager(){
 		timeAtLogin = new HashMap<String, Pair<Integer, Long> >();
@@ -360,7 +361,15 @@ public class DataManager {
 			return;
 
 		updateItemEntryLocal(event.entityPlayer.username, event.item.getEntityItem().itemID, 0, event.item.getEntityItem().stackSize);
-		queueItemUpdate();
+		synchronized(iiCounter)
+		{
+			++iiCounter;
+			if(iiCounter > 20)
+			{
+				iiCounter = 0;
+				queueItemUpdate();
+			}
+		}
 	}
 	
 	@ForgeSubscribe
@@ -372,7 +381,15 @@ public class DataManager {
 			return;
 		
 		updateItemEntryLocal(event.entityPlayer.username, event.original.itemID, 1, 1);
-		queueItemUpdate();
+		synchronized(iiCounter)
+		{
+			++iiCounter;
+			if(iiCounter > 20)
+			{
+				iiCounter = 0;
+				queueItemUpdate();
+			}
+		}
 	}
 	
 	@ForgeSubscribe
@@ -389,7 +406,15 @@ public class DataManager {
 			if(event.entityPlayer.getHeldItem() != null)
 			{
 				updateItemEntryLocal(event.entityPlayer.username, event.entityPlayer.getHeldItem().itemID, 2, 1);
-				queueItemUpdate();
+				synchronized(iiCounter)
+				{
+					++iiCounter;
+					if(iiCounter > 20)
+					{
+						iiCounter = 0;
+						queueItemUpdate();
+					}
+				}
 			}
 		}
 	}
@@ -411,7 +436,15 @@ public class DataManager {
 			return;
 		
 		updateItemEntryLocal(player.username, item.itemID, 3, item.stackSize);
-		queueItemUpdate();
+		synchronized(iiCounter)
+		{
+			++iiCounter;
+			if(iiCounter > 20)
+			{
+				iiCounter = 0;
+				queueItemUpdate();
+			}
+		}
 	}
 	
 	public void serverShuttingDown(){

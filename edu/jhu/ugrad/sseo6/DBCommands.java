@@ -48,25 +48,17 @@ public class DBCommands implements ICommand {
 			return;
 		}
 		
-		String query = "";
-		String query2 = "";
-		String query3 = "";
-		String query4 = "";
 		String name = icommandsender.getCommandSenderName();
-		String result = "";
-		Collection<String> result2 = null;
-		Collection<String> result3 = null;
-		Collection<String> result4 = null;
-		Collection<String> result5 = null;
 		
 		if(astring[0].equals("deaths")) {
-			query = "SELECT count(*) AS Total FROM Deaths WHERE Player = '" + name + "'";
-			query2 = "SELECT Entity_Name, count(*) AS Deaths FROM Deaths"
+			String query = "SELECT count(*) AS Total FROM Deaths WHERE Player = '" + name + "'";
+			String query2 = "SELECT Entity_Name, count(*) AS Deaths FROM Deaths"
 					+ " WHERE Player = '" + name + "' GROUP BY Entity_Name ORDER BY Deaths DESC";
 			Connection con = DBServerMain.instance().sqlManager.getConnection();
 			if(con == null)
 				return;
-			result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			String result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			Collection<String> result2 = null;
 			if(!result.equals("0"))
 				result2 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
 			try {
@@ -82,13 +74,14 @@ public class DBCommands implements ICommand {
 			}
 		}
 		else if(astring[0].equals("kills")) {
-			query = "SELECT count(*) AS Total FROM Kills WHERE Player = '" + name + "'";
-			query2 = "SELECT Entity_Name, count(*) AS Kills FROM Kills"
+			String query = "SELECT count(*) AS Total FROM Kills WHERE Player = '" + name + "'";
+			String query2 = "SELECT Entity_Name, count(*) AS Kills FROM Kills"
 					+ " WHERE Player = '" + name + "' GROUP BY Entity_Name ORDER BY Kills DESC";
 			Connection con = DBServerMain.instance().sqlManager.getConnection();
 			if(con == null)
 				return;
-			result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			String result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			Collection<String> result2 = null;
 			if(!result.equals("0"))
 				result2 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
 			try {
@@ -104,28 +97,28 @@ public class DBCommands implements ICommand {
 			}
 		}
 		else if(astring[0].equals("item")) {
-			query = "SELECT I.Name, II.Collected FROM Items I, Item_Info II WHERE"
+			String query = "SELECT I.Name, II.Collected FROM Items I, Item_Info II WHERE"
 					+ " II.Player = '" + name + "' AND I.ID = II.Item_ID ORDER BY II.Collected DESC";
-			query2 = "SELECT I.Name, II.Broken FROM Items I, Item_Info II WHERE"
+			String query2 = "SELECT I.Name, II.Broken FROM Items I, Item_Info II WHERE"
 					+ " II.Player = '" + name + "' AND I.ID = II.Item_ID ORDER BY II.Broken DESC";
-			query3 = "SELECT I.Name, II.Used FROM Items I, Item_Info II WHERE"
+			String query3 = "SELECT I.Name, II.Used FROM Items I, Item_Info II WHERE"
 					+ " II.Player = '" + name + "' AND I.ID = II.Item_ID ORDER BY II.Used DESC";
-			query4 = "SELECT I.Name, II.Created FROM Items I, Item_Info II WHERE"
+			String query4 = "SELECT I.Name, II.Created FROM Items I, Item_Info II WHERE"
 					+ " II.Player = '" + name + "' AND I.ID = II.Item_ID ORDER BY II.Created DESC";
 			Connection con = DBServerMain.instance().sqlManager.getConnection();
 			if(con == null)
 				return;
-			result2 = DBServerMain.instance().sqlManager.standardQueryRow(query, con, 2);
-			result3 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
-			result4 = DBServerMain.instance().sqlManager.standardQueryRow(query3, con, 2);
-			result5 = DBServerMain.instance().sqlManager.standardQueryRow(query4, con, 2);
+			Collection<String> result = DBServerMain.instance().sqlManager.standardQueryRow(query, con, 2);
+			Collection<String> result2 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
+			Collection<String> result3 = DBServerMain.instance().sqlManager.standardQueryRow(query3, con, 2);
+			Collection<String> result4 = DBServerMain.instance().sqlManager.standardQueryRow(query4, con, 2);
 			try {
 				con.close();
 			} catch (SQLException e) {}
-			String[] res = result2.toArray(new String[2]);
-			String[] res2 = result3.toArray(new String[2]);
-			String[] res3 = result4.toArray(new String[2]);
-			String[] res4 = result5.toArray(new String[2]);
+			String[] res = result.toArray(new String[2]);
+			String[] res2 = result2.toArray(new String[2]);
+			String[] res3 = result3.toArray(new String[2]);
+			String[] res4 = result4.toArray(new String[2]);
 			
 			icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("You collected "
 					+ "mostly " + res[0] + " " + res[1] + " times."));
@@ -137,10 +130,29 @@ public class DBCommands implements ICommand {
 					+ "mostly " + res4[0] + " " + res4[1] + " times."));
 		}
 		else if(astring[0].equals("rank")) {
+			String query = "SELECT Rank, Score FROM Ranks, Player WHERE Player = '" + name
+					+ "' AND Player = Username";
+			Collection<String> result = DBServerMain.instance().sqlManager.standardQueryRow(query, null, 2);
+			String[] res = result.toArray(new String[2]);
 			
+			icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("Your rank is "
+					+ res[0] + " with Minecraft score " + res[1] + "."));
 		}
 		else if(astring[0].equals("time")) {
-			
+			String query = "SELECT SUM(Time) AS Total FROM Time_Spent WHERE Player = '" + name + "'";
+			String query2 = "SELECT Dimension_ID, Time FROM Time_Spent WHERE Player = '" + name + "' AND Time >= ALL "
+					+ "(SELECT Time FROM Time_Spent WHERE Player = '" + name + "')";
+			Connection con = DBServerMain.instance().sqlManager.getConnection();
+			String result = DBServerMain.instance().sqlManager.standardQuery(query, con);
+			Collection<String> result2 = DBServerMain.instance().sqlManager.standardQueryRow(query2, con, 2);
+			try {
+				con.close();
+			} catch (SQLException e) {}
+			String[] res2 = result2.toArray(new String[2]);
+			icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("You spent "
+					+ result + " seconds in the game."));
+			icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("You spent "
+					+ "the most time in dimension " + res2[0] + " with " + res2[1] + " seconds."));
 		}
 		else
 			icommandsender.sendChatToPlayer(ChatMessageComponent.createFromText("Invalid command use."));
